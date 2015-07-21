@@ -65,6 +65,10 @@ public class RedMetricsManager : MonoBehaviour
 		Debug.Log("setGameVersion("+gVersion+")");
 		gameVersion = gVersion;
 	}
+
+	public void Start() {
+		sendStartEvent(false);
+	}
 	
 	
 	//////////////////////////////////////////////////
