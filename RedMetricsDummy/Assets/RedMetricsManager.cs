@@ -48,8 +48,8 @@ public class RedMetricsManager : MonoBehaviour
 	private string redMetricsPlayer = "player";
 	private string redMetricsEvent = "event";
 
-	//Hero.Coli's test game version
-	private static string defaultGameVersion = "\"83f99dfa-bd87-43e1-940d-f28bbcea5b1d\"";
+	//Redmetrics-Unity's test game version
+	private static string defaultGameVersion = "\"0bcc8bbb-b557-4b58-b133-761861df633b\"";
 	private string gameVersion = defaultGameVersion;
 	private static string defaultPlayerID = "\"b5ab445a-56c9-4c5b-a6d0-86e8a286cd81\"";
 	private string playerID = defaultPlayerID;	    
