@@ -5,5 +5,6 @@ public enum TrackingEvent {
 	CREATEPLAYER,
 	JUMP,
 	BOUNCE,
-	START
+	START,
+	RESTART
 }

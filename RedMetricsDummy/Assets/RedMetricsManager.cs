@@ -20,23 +20,23 @@ public class RedMetricsManager : MonoBehaviour
 			}
 			else
 			{
-				Debug.LogError("RedMetricsManager::get couldn't find game object");
+				logMessage("RedMetricsManager::get couldn't find game object", MessageLevel.ERROR);
 			}
 		}
 		return _instance;
 	}
 	void Awake()
 	{
-		Debug.Log("RedMetricsManager::Awake");
+		//logMessage("RedMetricsManager::Awake");
 		antiDuplicateInitialization();
 	}
 	
 	void antiDuplicateInitialization()
 	{
 		RedMetricsManager.get ();
-		Debug.LogError("RedMetricsManager::antiDuplicateInitialization with hashcode="+this.GetHashCode()+" and _instance.hashcode="+_instance.GetHashCode());
+		//logMessage("RedMetricsManager::antiDuplicateInitialization with hashcode="+this.GetHashCode()+" and _instance.hashcode="+_instance.GetHashCode(), MessageLevel.ERROR);
 		if(this != _instance) {
-			Debug.Log("RedMetricsManager::antiDuplicateInitialization self-destruction");
+			//logMessage("RedMetricsManager::antiDuplicateInitialization self-destruction");
 			Destroy(this.gameObject);
 		}
 	}
@@ -56,34 +56,58 @@ public class RedMetricsManager : MonoBehaviour
 	
 	public void setPlayerID (string pID)
 	{
-		Debug.Log("setPlayerID("+pID+")");
+		logMessage("setPlayerID("+pID+")");
 		playerID = pID;
 	}
 	
 	public void setGameVersion (string gVersion)
 	{
-		Debug.Log("setGameVersion("+gVersion+")");
+		logMessage("setGameVersion("+gVersion+")");
 		gameVersion = gVersion;
 	}
 
 	public void Start() {
 		sendStartEvent(false);
 	}
-	
+
+	private static void logMessage(string message, MessageLevel level = MessageLevel.DEFAULT) {
+
+		//if the game is played using a web player
+		if(Application.isWebPlayer) {
+			Application.ExternalCall("DebugFromWebPlayerToBrowser", message);
+
+		//if the game is played inside the editor or as a standalone
+		} else {
+			switch(level) {
+			case MessageLevel.DEFAULT:
+				Debug.Log(message);
+				break;
+			case MessageLevel.WARNING:
+				Debug.LogWarning(message);
+				break;
+			case MessageLevel.ERROR:
+				Debug.LogError(message);
+				break;
+			default:
+				Debug.Log(message);
+				break;
+			}
+		}
+	}
 	
 	//////////////////////////////////////////////////
 	/// standalone methods
 	
 	public static IEnumerator GET (string url, System.Action<WWW> callback)
 	{
-		Debug.Log("GET");
+		logMessage("GET");
 		WWW www = new WWW (url);
 		return waitForWWW (www, callback);
 	}
 	
 	public static IEnumerator POST (string url, Dictionary<string,string> post, System.Action<WWW> callback)
 	{
-		Debug.Log("POST");
+		logMessage("POST");
 		WWWForm form = new WWWForm ();
 		foreach (KeyValuePair<string,string> post_arg in post) {
 			form.AddField (post_arg.Key, post_arg.Value);
@@ -95,19 +119,19 @@ public class RedMetricsManager : MonoBehaviour
 	
 	public static IEnumerator POST (string url, byte[] post, Dictionary<string, string> headers, System.Action<WWW> callback)
 	{
-		Debug.Log ("POST url:"+url);
+		logMessage("POST url:"+url);
 		WWW www = new WWW (url, post, headers);
 		return waitForWWW (www, callback);
 	}
 	
 	private static IEnumerator waitForWWW (WWW www, System.Action<WWW> callback)
 	{
-		Debug.Log ("waitForWWW");
+		logMessage("waitForWWW");
 		float elapsedTime = 0.0f;
 		
 		if(null == www)
 		{
-			Debug.LogError("waitForWWW: null www");
+			logMessage("waitForWWW: null www", MessageLevel.ERROR);
 			yield return null;
 		}
 		
@@ -115,7 +139,7 @@ public class RedMetricsManager : MonoBehaviour
 			elapsedTime += Time.deltaTime;
 			if (elapsedTime >= 30.0f)
 			{
-				Debug.LogError("waitForWWW: TimeOut!");
+				logMessage("waitForWWW: TimeOut!", MessageLevel.ERROR);
 				break;
 			}
 			yield return null;
@@ -123,38 +147,40 @@ public class RedMetricsManager : MonoBehaviour
 		
 		if (!www.isDone || !string.IsNullOrEmpty (www.error)) {
 			string errmsg = string.IsNullOrEmpty (www.error) ? "timeout" : www.error;
-			Debug.LogError("RedMetricsManager::waitForWWW Error: Load Failed: " + errmsg);
+			logMessage("RedMetricsManager::waitForWWW Error: Load Failed: " + errmsg, MessageLevel.ERROR);
 			callback (null);    // Pass null result.
 			yield break;
 		}
 		
-		Debug.LogError("waitForWWW: www good to ship!");
+		logMessage("waitForWWW: www good to ship!", MessageLevel.ERROR);
 		callback (www); // Pass retrieved result.
 	}
 	
 	////////////////////////////////////////
-	/// helpers
+	/// helpers for standalone
 	/// 
 	
 	private void sendData(string urlSuffix, string pDataString, System.Action<WWW> callback)
 	{
+		//logMessage("RedMetricsManager::sendData");
 		string url = redMetricsURL + urlSuffix;
 		Dictionary<string, string> headers = new Dictionary<string, string> ();
 		headers.Add ("Content-Type", "application/json");
 		byte[] pData = System.Text.Encoding.ASCII.GetBytes (pDataString.ToCharArray ());
-		Debug.Log("RedMetricsManager::sendData StartCoroutine POST with data="+pDataString+" ...");
+		//logMessage("RedMetricsManager::sendData StartCoroutine POST with data="+pDataString+" ...");
 		StartCoroutine (RedMetricsManager.POST (url, pData, headers, callback));
 	}
 	
 	private void createPlayer (System.Action<WWW> callback)
 	{
-		string ourPostData = "{\"type\":"+TrackingEvent.CREATEPLAYER+"}";
+		//logMessage("RedMetricsManager::createPlayer");
+		string ourPostData = "{\"type\":"+prepareEvent(TrackingEvent.CREATEPLAYER)+"}";
 		sendData(redMetricsPlayer, ourPostData, callback);
 	}
 	
 	private void testGet(System.Action<WWW> callback)
 	{
-		Debug.Log("testGet");
+		//logMessage("RedMetricsManager::testGet");
 		string url = redMetricsURL + redMetricsPlayer;
 		StartCoroutine (RedMetricsManager.GET (url, callback));
 	}
@@ -162,32 +188,33 @@ public class RedMetricsManager : MonoBehaviour
 	private void wwwLogger (WWW www, string origin = "default")
 	{
 		if(null == www) {
-			Debug.LogError("RedMetricsManager::wwwLogger null == www from "+origin);
+			logMessage("RedMetricsManager::wwwLogger null == www from "+origin, MessageLevel.ERROR);
 		} else {
 			if (www.error == null) {
-				Debug.LogError("RedMetricsManager::wwwLogger Success: " + www.text + " from "+origin);
+				//logMessage("RedMetricsManager::wwwLogger Success: " + www.text + " from "+origin, MessageLevel.ERROR);
 			} else {
-				Debug.LogError("RedMetricsManager::wwwLogger Error: " + www.error + " from "+origin);
+				logMessage("RedMetricsManager::wwwLogger Error: " + www.error + " from "+origin, MessageLevel.ERROR);
 			} 
 		}
 	}
 	
 	private string extractPID(WWW www)
 	{
+		//logMessage("RedMetricsManager::extractPID");
 		string result = null;
 		wwwLogger(www, "extractPID");
 		string trimmed = www.text.Trim ();
 		string[] split1 = trimmed.Split('\n');
 		foreach(string s1 in split1)
 		{
-			//Debug.Log(s1);
+			//logMessage(s1);
 			if(s1.Length > 5)
 			{
 				string[] split2 = s1.Trim ().Split(':');
 				foreach(string s2 in split2)
 				{
 					if(!s2.Equals("id")){
-						//Debug.Log ("id =? "+s2);
+						//logMessage("id =? "+s2);
 						result = s2;
 					}
 				}
@@ -198,45 +225,43 @@ public class RedMetricsManager : MonoBehaviour
 	
 	private void trackStart(WWW www)
 	{
-		Debug.Log("trackStart: www =? null:"+(null == www));
+		//logMessage("RedMetricsManager::trackStart: www =? null:"+(null == www));
 		string pID = extractPID(www);
 		setPlayerID(pID);
 		sendEvent(TrackingEvent.START);
 	}
-	
-	public void sendStartEvent(bool switched)
+	//////////////////////////////////////////////////
+
+
+
+
+	// filtering is done on Application.isWebPlayer
+	// but could be done on Application.platform for better accuracy
+	public void sendStartEvent(bool restart)
 	{
-		Debug.Log ("RedMetricsManager::sendStartEvent");
-		
-		// management of game start for webplayer
-		if(!switched) {
-			//switch event is sent from somewhere else
-			connect ();
-			StartCoroutine(waitAndSendStart());
-		}
-		
-		//TODO management of game start for standalone
-		//WARNING: switch event is sent from somewhere else
-		/*
-        string pID = null;
-        bool tryGetPID = tryGetData(playerDataKey, out pID);
-        if(tryGetPID && !string.IsNullOrEmpty(pID))
-        {
-            Debug.Log ("RedMetricsManager::sendStartEvent player already identified - pID="+pID);
-            string currentLevelName = "?";
-            LevelInfo levelInfo;
-            bool success = tryGetCurrentLevelInfo(out levelInfo);
-            if(success && null != levelInfo)
-            {
-                currentLevelName = levelInfo.code;
-            }
-            sendEvent(TrackingEvent.SWITCH,currentLevelName);
-        } else {
-            createPlayer (www => trackStart(www));
-            //testGet (www => trackStart(www));
-        }
-        */
-		
+		//logMessage("RedMetricsManager::sendStartEvent");
+
+
+		if(Application.isWebPlayer) {
+			// all web players
+			// management of game start for webplayer
+			if(!restart) {
+				//restart event is sent from somewhere else
+				connect ();
+				StartCoroutine(waitAndSendStart());
+			}
+				
+		} else {
+			// other players + editor
+			if(defaultPlayerID == playerID) {
+				//playerID hasn't been initialized
+				//logMessage("RedMetricsManager::sendStartEvent other players/editor: createPlayer");
+				createPlayer (www => trackStart(www));
+				//testGet (www => trackStart(www));
+			} else {
+				sendEvent(TrackingEvent.RESTART);
+			}
+		}		
 	}
 	
 	private IEnumerator waitAndSendStart() {
@@ -247,7 +272,7 @@ public class RedMetricsManager : MonoBehaviour
 	public void connect()
 	{
 		string json = "{\"gameVersionId\": "+gameVersion+"}";
-		Debug.LogError ("RedMetricsManager::connect will rmConnect json="+json);
+		//logMessage("RedMetricsManager::connect will rmConnect json="+json);
 		Application.ExternalCall("rmConnect", json);
 	}
 	
@@ -288,9 +313,9 @@ public class RedMetricsManager : MonoBehaviour
 		string pID = playerID;
 		if(!string.IsNullOrEmpty(pID))
 		{
-			Debug.Log ("RedMetricsManager::sendEvent player already identified - pID="+pID);            
+			//logMessage("RedMetricsManager::sendEvent player already identified - pID="+pID);            
 		} else {
-			Debug.LogError ("RedMetricsManager::sendEvent no registered player!");
+			logMessage("RedMetricsManager::sendEvent no registered player!", MessageLevel.WARNING);
 			pID = defaultPlayerID;
 		}
 		return jsonPrefix+pID+","+jsonSuffix;
@@ -301,35 +326,34 @@ public class RedMetricsManager : MonoBehaviour
 	{
 		return "{"+innerCreateJsonForRedMetrics(eventCode, customData, section, coordinates);
 	}
-	
+
+	private string prepareEvent(TrackingEvent tEvent) {
+		return tEvent.ToString().ToLower();
+	}
+
 	// see github.com/CyberCri/RedMetrics.js
 	// with type -> eventCode
 	public void sendEvent(TrackingEvent trackingEvent, string customData = null, string section = null, string coordinates = null)
 	{
-		//TODO test on build type:
-		// if webplayer, then use Application.ExternalCall("rmConnect", json);
-		// else if standalone, then use WWW
-		// else ... ?
-		
-		string json = createJsonForRedMetricsJS(trackingEvent.ToString().ToLower(), customData, section, coordinates);
-		Debug.Log ("RedMetricsManager::sendEvent will rmPostEvent json="+json);
-		Application.ExternalCall("rmPostEvent", json);
-		
-		/*
-        //TODO management of game start for standalone
-        string pID = null;
-        bool tryGetPID = tryGetData(playerDataKey, out pID);
-        if(tryGetPID && !string.IsNullOrEmpty(pID))
-        {
-            Debug.Log ("RedMetricsManager::sendEvent player already identified - pID="+pID);
-            string ourPostData = "{\"gameVersion\":" + gameVersion + "," +
-                "\"player\":" + playerID + "," +
-                    "\"type\":\""+eventCode+"\"}";
-            sendData(redMetricsEvent, ourPostData, value => wwwLogger(value, "sendEvent("+eventCode+")"));
-        } else {
-            Debug.LogError ("RedMetricsManager::sendEvent no registered player!");
-        }
-        */
+		//logMessage("RedMetricsManager::sendEvent");
+		if(Application.isWebPlayer) {
+			string json = createJsonForRedMetricsJS(prepareEvent(trackingEvent), customData, section, coordinates);
+			//logMessage("RedMetricsManager::sendEvent isWebPlayer will rmPostEvent json="+json);
+			Application.ExternalCall("rmPostEvent", json);
+		} else {
+			//logMessage("RedMetricsManager::sendEvent non web player");
+			//TODO wait on playerID using an IEnumerator
+			if(!string.IsNullOrEmpty(playerID))
+			{
+				//logMessage("RedMetricsManager::sendEvent player already identified - pID="+playerID);
+				string ourPostData = "{\"gameVersion\":" + gameVersion + "," +
+					"\"player\":" + playerID + "," +
+					"\"type\":\""+prepareEvent(trackingEvent)+"\"}";
+				sendData(redMetricsEvent, ourPostData, value => wwwLogger(value, "sendEvent("+prepareEvent(trackingEvent)+")"));
+			} else {
+				logMessage("RedMetricsManager::sendEvent no registered player!", MessageLevel.ERROR);
+			}
+		}
 	}
 	
 	public override string ToString ()
