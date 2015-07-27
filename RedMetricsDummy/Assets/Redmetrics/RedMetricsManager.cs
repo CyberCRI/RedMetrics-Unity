@@ -2,6 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// author 
+//    Raphael Goujet
+//    Center for Research and Interdisciplinarity
+//    raphael.goujet@cri-paris.org
 public class RedMetricsManager : MonoBehaviour
 {    
 	
@@ -268,12 +272,16 @@ public class RedMetricsManager : MonoBehaviour
 		yield return new WaitForSeconds(5.0f);
 		sendEvent(TrackingEvent.START);
 	}
-	
+
+
+	//webplayer
 	public void connect()
 	{
-		string json = "{\"gameVersionId\": "+gameVersion+"}";
-		//logMessage("RedMetricsManager::connect will rmConnect json="+json);
-		Application.ExternalCall("rmConnect", json);
+		if(Application.isWebPlayer) {
+			string json = "{\"gameVersionId\": "+gameVersion+"}";
+			//logMessage("RedMetricsManager::connect will rmConnect json="+json);
+			Application.ExternalCall("rmConnect", json);
+		}
 	}
 	
 	
@@ -333,6 +341,13 @@ public class RedMetricsManager : MonoBehaviour
 
 	// see github.com/CyberCri/RedMetrics.js
 	// with type -> eventCode
+
+
+	//TODO
+	//VECTOR FOR COORDINATES
+	//JSON FOR CUSTOMDATA
+	//JSON LIB FOR C#
+	//CLASS FOR EVENT INFORMATION
 	public void sendEvent(TrackingEvent trackingEvent, string customData = null, string section = null, string coordinates = null)
 	{
 		//logMessage("RedMetricsManager::sendEvent");
@@ -346,9 +361,8 @@ public class RedMetricsManager : MonoBehaviour
 			if(!string.IsNullOrEmpty(playerID))
 			{
 				//logMessage("RedMetricsManager::sendEvent player already identified - pID="+playerID);
-				string ourPostData = "{\"gameVersion\":" + gameVersion + "," +
-					"\"player\":" + playerID + "," +
-					"\"type\":\""+prepareEvent(trackingEvent)+"\"}";
+				string ourPostData = createJsonForRedMetrics(prepareEvent(trackingEvent),customData,section,coordinates);
+				Debug.LogWarning(ourPostData);
 				sendData(redMetricsEvent, ourPostData, value => wwwLogger(value, "sendEvent("+prepareEvent(trackingEvent)+")"));
 			} else {
 				logMessage("RedMetricsManager::sendEvent no registered player!", MessageLevel.ERROR);

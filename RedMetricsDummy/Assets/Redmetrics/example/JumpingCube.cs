@@ -11,12 +11,18 @@ public class JumpingCube : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(Input.GetKeyUp(KeyCode.Space)) {
-			RedMetricsManager.get ().sendEvent(TrackingEvent.JUMP);
+			RedMetricsManager.get ().sendEvent(TrackingEvent.JUMP, 
+			                                   "1");//"{\"time\": "+Time.realtimeSinceStartup.ToString()+"}",
+			                                   //"testSection",
+			                                   //"[1,2]");
 			giveImpulsion();
 		}
 
 		if(this.gameObject.transform.localPosition.y < -2.0f) {
-			RedMetricsManager.get ().sendEvent(TrackingEvent.BOUNCE);
+			RedMetricsManager.get ().sendEvent(TrackingEvent.BOUNCE);/*, 
+			                                   "1",//"{\"time\": "+Time.realtimeSinceStartup.ToString()+"}",
+			                                   "testSection",
+			                                   "[1,2]");*/
 			giveImpulsion();
 		}
 	}
