@@ -156,7 +156,7 @@ public class RedMetricsManager : MonoBehaviour
 			yield break;
 		}
 		
-		logMessage("waitForWWW: www good to ship!", MessageLevel.ERROR);
+		logMessage("waitForWWW: message successfully transmitted", MessageLevel.DEFAULT);
 		callback (www); // Pass retrieved result.
 	}
 	
@@ -195,7 +195,7 @@ public class RedMetricsManager : MonoBehaviour
 			logMessage("RedMetricsManager::wwwLogger null == www from "+origin, MessageLevel.ERROR);
 		} else {
 			if (www.error == null) {
-				//logMessage("RedMetricsManager::wwwLogger Success: " + www.text + " from "+origin, MessageLevel.ERROR);
+				logMessage("RedMetricsManager::wwwLogger Success: " + www.text + " from "+origin, MessageLevel.DEFAULT);
 			} else {
 				logMessage("RedMetricsManager::wwwLogger Error: " + www.error + " from "+origin, MessageLevel.ERROR);
 			} 
