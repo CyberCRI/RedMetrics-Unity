@@ -166,6 +166,19 @@ public class CreatePlayerData {
   
 	public override string ToString ()
 	{
-		return string.Format ("[CreatePlayerData]");
+		return string.Format ("[CreatePlayerData: type: {0}]", type);
+	}
+}
+
+public class ConnectionData {
+	public string gameVersionID;
+
+	public ConnectionData(string id) {
+		gameVersionID = id;
+	}
+
+	public override string ToString ()
+	{
+		return string.Format ("[ConnectionData: gameVersionID: {0}]", gameVersionID);
 	}
 }

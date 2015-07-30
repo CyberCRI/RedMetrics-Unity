@@ -54,9 +54,9 @@ public class RedMetricsManager : MonoBehaviour
 	private string redMetricsEvent = "event";
 
 	//Redmetrics-Unity's test game version
-	private static string defaultGameVersion = "\"0bcc8bbb-b557-4b58-b133-761861df633b\"";
+	private static string defaultGameVersion = "0bcc8bbb-b557-4b58-b133-761861df633b";
 	private string gameVersion = defaultGameVersion;
-	private static string defaultPlayerID = "\"b5ab445a-56c9-4c5b-a6d0-86e8a286cd81\"";
+	private static string defaultPlayerID = "b5ab445a-56c9-4c5b-a6d0-86e8a286cd81";
 	private string playerID = defaultPlayerID;	    
 	
 	public void setPlayerID (string pID)
@@ -219,9 +219,15 @@ public class RedMetricsManager : MonoBehaviour
 				string[] split2 = s1.Trim ().Split(':');
 				foreach(string s2 in split2)
 				{
-					if(!s2.Equals("id")){
-						//logMessage("id =? "+s2);
-						result = s2;
+					if(!s2.Equals("\"id\"") && !string.IsNullOrEmpty(s2)){
+						string[] split3 = s2.Trim ().Split('"');
+						foreach(string s3 in split3)
+						{
+
+							if(!s3.Equals("\"") && !string.IsNullOrEmpty(s3)){
+								result = s3;
+							}
+						}
 					}
 				}
 			}
@@ -280,51 +286,26 @@ public class RedMetricsManager : MonoBehaviour
 	public void connect()
 	{
 		if(Application.isWebPlayer) {
-			string json = "{\"gameVersionId\": "+gameVersion+"}";
+			ConnectionData data = new ConnectionData(gameVersion);
+			string json = getJsonString(data);
 			//logMessage("RedMetricsManager::connect will rmConnect json="+json);
 			Application.ExternalCall("rmConnect", json);
 		}
 	}
 	
-	private string getJsonString(TrackingEventDataWithIDs data) {
+	public string getJsonString(object obj) {
 
-		logMessage("data="+data);
+		logMessage("object="+obj);
 
 		//serialization
 		JsonWriter writer = new JsonWriter();
 		writer.PrettyPrint = true;		
-		JsonMapper.ToJson(data,writer);		
+		JsonMapper.ToJson(obj,writer);		
 		
 		string json = writer.ToString();
 		logMessage("json="+json);
 		return json;
 	}	
-	
-	
-	private string getJsonString(TrackingEventDataWithoutIDs data) {
-
-		logMessage("data="+data);
-
-		//serialization
-		JsonWriter writer = new JsonWriter();
-		writer.PrettyPrint = true;		
-		JsonMapper.ToJson(data,writer);		
-		
-		string json = writer.ToString();
-		logMessage("json="+json);
-		return json;
-  }
-	
-	private string getJsonString(CreatePlayerData data) {
-		//serialization
-		JsonWriter writer = new JsonWriter();
-		writer.PrettyPrint = true;		
-		JsonMapper.ToJson(data,writer);		
-		
-		string json = writer.ToString();
-		logMessage("json="+json);
-		return json;
-	}
 	
 	public void sendEvent(TrackingEvent trackingEvent, Vector2 coordinates, CustomData customData = null, string section = null)
 	{
