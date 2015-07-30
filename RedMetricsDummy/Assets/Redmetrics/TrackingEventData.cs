@@ -58,7 +58,7 @@ public abstract class TrackingEventData {
 	public string section;
 
 	//optional
-	public float[] coordinates;
+	public int[] coordinates;
 
 
 	public TrackingEventData(){ }
@@ -67,11 +67,12 @@ public abstract class TrackingEventData {
 		TrackingEvent _trackingEvent, 
 		CustomData _customData = null, 
 		string _section = null,
-		float[] _coordinates = null
+		int[] _coordinates = null
 		)
 	{
 		//cf http://stackoverflow.com/questions/114983/given-a-datetime-object-how-do-i-get-a-iso-8601-date-in-string-format/115002#115002
-		userTime = System.DateTime.UtcNow.ToString ("o", System.Globalization.CultureInfo.InvariantCulture);
+		userTime = System.DateTime.UtcNow.ToString ("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+	
 		setTrackingEvent(_trackingEvent);
 		customData = _customData;
 		section = _section;
@@ -111,7 +112,7 @@ public class TrackingEventDataWithoutIDs : TrackingEventData {
 		TrackingEvent _trackingEvent, 
 		CustomData _customData = null, 
 		string _section = null,
-		float[] _coordinates = null
+		int[] _coordinates = null
 	) : base(_trackingEvent, _customData, _section, _coordinates)
 	{}
 
@@ -131,7 +132,7 @@ public class TrackingEventDataWithIDs : TrackingEventData {
 		TrackingEvent _trackingEvent, 
 		CustomData _customData = null, 
 		string _section = null,
-		float[] _coordinates = null
+		int[] _coordinates = null
 	) : base(_trackingEvent, _customData, _section, _coordinates){
 		player = _playerID;
 		gameVersion = _gameVersionID;

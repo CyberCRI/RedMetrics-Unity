@@ -309,17 +309,17 @@ public class RedMetricsManager : MonoBehaviour
 	
 	public void sendEvent(TrackingEvent trackingEvent, Vector2 coordinates, CustomData customData = null, string section = null)
 	{
-		float[] _coordinates = { coordinates.x, coordinates.y };
+		int[] _coordinates = { Mathf.RoundToInt(coordinates.x), Mathf.RoundToInt(coordinates.y) };
 		sendEvent(trackingEvent, customData, section, _coordinates);
 	}
 	
 	public void sendEvent(TrackingEvent trackingEvent, Vector3 coordinates, CustomData customData = null, string section = null)
 	{
-		float[] _coordinates = { coordinates.x, coordinates.y, coordinates.z };
+		int[] _coordinates = { Mathf.RoundToInt(coordinates.x), Mathf.RoundToInt(coordinates.y), Mathf.RoundToInt(coordinates.z) };
 		sendEvent(trackingEvent, customData, section, _coordinates);
 	}
 
-	public void sendEvent(TrackingEvent trackingEvent, CustomData customData = null, string section = null, float[] coordinates = null)
+	public void sendEvent(TrackingEvent trackingEvent, CustomData customData = null, string section = null, int[] coordinates = null)
 	{
 
 		//logMessage("RedMetricsManager::sendEvent");

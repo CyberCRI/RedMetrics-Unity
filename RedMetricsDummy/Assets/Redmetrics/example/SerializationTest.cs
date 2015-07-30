@@ -12,7 +12,7 @@ public class SerializationTest : MonoBehaviour {
 		customData.Add("customKey1", "customValue1");
 		customData.Add("customKey2", "customValue2");
 
-		float[] coordinates = { 1, 2, 3 };
+		int[] coordinates = { 1, 2, 3 };
 
 		TrackingEventData data = new TrackingEventDataWithoutIDs(
 			TrackingEvent.START,
