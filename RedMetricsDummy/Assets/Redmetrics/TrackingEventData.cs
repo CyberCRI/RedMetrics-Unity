@@ -5,9 +5,6 @@ using System.Collections.Generic;
 //From https://github.com/CyberCRI/RedMetrics/blob/master/API.md
 public class TrackingEventData {
 
-	//public static Vector3 coordinatesDefaultValue = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
-	private static Vector3 coordinatesDefaultValue = Vector3.zero;
-
 	/*
     userTime - Date sent by the game (optional)
 
@@ -23,14 +20,14 @@ public class TrackingEventData {
 	 */ 
 
 	//optional
-	public float userTime;
+	//date in ISO 8601 format
+	public string userTime;
 
 	//managed by RedMetrics server
 	//Time serverTime;
-
-	//EventType or TrackingEvent?
+	
 	private TrackingEvent internalTrackingEvent;
-	public string trackingEvent {
+	public string type {
 		set {
 			internalTrackingEvent = TrackingEvent.DEFAULT;
 			foreach(TrackingEvent _trackingEvent in System.Enum.GetValues(typeof(TrackingEvent)))
@@ -58,41 +55,31 @@ public class TrackingEventData {
 	public string section;
 
 	//optional
-	public Vector3 coordinates;
+	public float[] coordinates;
 
 
 	public TrackingEventData(){ }
 
 	public TrackingEventData(
 		TrackingEvent _trackingEvent, 
-		Vector3 _coordinates,
 		CustomData _customData = null, 
 		string _section = null,
-		float _userTime = 0f
+		float[] _coordinates = null
 		)
 	{
-		userTime = _userTime;
+		//cf http://stackoverflow.com/questions/114983/given-a-datetime-object-how-do-i-get-a-iso-8601-date-in-string-format/115002#115002
+		userTime = System.DateTime.UtcNow.ToString ("o", System.Globalization.CultureInfo.InvariantCulture);
 		setTrackingEvent(_trackingEvent);
 		customData = _customData;
 		section = _section;
 		coordinates = _coordinates;
 	}
 
-	public TrackingEventData(
-		TrackingEvent _trackingEvent, 
-		CustomData _customData = null, 
-		string _section = null,
-		float _userTime = 0f
-	) : this (_trackingEvent, TrackingEventData.coordinatesDefaultValue, _customData, _section, _userTime)
-	{
-
-	}
-
 	public override string ToString ()
 	{
-		return string.Format ("[TrackingEventData: userTime:{0}, trackingEvent:{1}, customData:{2}, section:{3}, coordinates:{4}]"
+		return string.Format ("[TrackingEventData: userTime:{0}, type:{1}, customData:{2}, section:{3}, coordinates:{4}]"
 		                      ,userTime
-		                      ,trackingEvent
+		                      ,type
 		                      ,customData
 		                      ,section
 		                      ,coordinates

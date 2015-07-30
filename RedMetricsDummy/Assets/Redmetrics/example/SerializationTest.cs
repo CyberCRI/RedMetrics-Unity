@@ -12,12 +12,13 @@ public class SerializationTest : MonoBehaviour {
 		customData.Add("customKey1", "customValue1");
 		customData.Add("customKey2", "customValue2");
 
+		float[] coordinates = { 1, 2, 3 };
+
 		TrackingEventData data = new TrackingEventData(
 			TrackingEvent.START,
-			new Vector3(1f,2f,3f),
 			customData,
 			"map1.level1.section1",
-			1.2f
+			coordinates
 			);
 
 		//*

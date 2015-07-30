@@ -2,10 +2,19 @@
 using System.Collections;
 
 public enum TrackingEvent {
+	//standard events
 	DEFAULT,
-	CREATEPLAYER,
-	JUMP,
-	BOUNCE,
 	START,
-	RESTART
+	END,
+	WIN,
+	FAIL,
+	RESTART,
+	GAIN,
+	LOSE,
+
+	//other examples of events
+	CREATEPLAYER,
+	CHANGEPLAYER,
+	JUMP,
+	BOUNCE
 }
