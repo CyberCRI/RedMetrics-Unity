@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using LitJson;
 
 // author 
 //    Raphael Goujet
@@ -164,22 +165,23 @@ public class RedMetricsManager : MonoBehaviour
 	/// helpers for standalone
 	/// 
 	
-	private void sendData(string urlSuffix, string pDataString, System.Action<WWW> callback)
+	private void sendDataStandalone(string urlSuffix, string pDataString, System.Action<WWW> callback)
 	{
-		//logMessage("RedMetricsManager::sendData");
+		//logMessage("RedMetricsManager::sendDataStandalone");
 		string url = redMetricsURL + urlSuffix;
 		Dictionary<string, string> headers = new Dictionary<string, string> ();
 		headers.Add ("Content-Type", "application/json");
 		byte[] pData = System.Text.Encoding.ASCII.GetBytes (pDataString.ToCharArray ());
-		//logMessage("RedMetricsManager::sendData StartCoroutine POST with data="+pDataString+" ...");
+		//logMessage("RedMetricsManager::sendDataStandalone StartCoroutine POST with data="+pDataString+" ...");
 		StartCoroutine (RedMetricsManager.POST (url, pData, headers, callback));
 	}
 	
 	private void createPlayer (System.Action<WWW> callback)
 	{
 		//logMessage("RedMetricsManager::createPlayer");
-		string ourPostData = "{\"type\":"+prepareEvent(TrackingEvent.CREATEPLAYER)+"}";
-		sendData(redMetricsPlayer, ourPostData, callback);
+		CreatePlayerData data = new CreatePlayerData();
+		string json = getJsonString(data);
+		sendDataStandalone(redMetricsPlayer, json, callback);
 	}
 	
 	private void testGet(System.Action<WWW> callback)
@@ -284,75 +286,65 @@ public class RedMetricsManager : MonoBehaviour
 		}
 	}
 	
-	
-	private string innerCreateJsonForRedMetrics(string eventCode, string customData, string section, string coordinates)
-	{
-		string eventCodePart = "", customDataPart = "", sectionPart = "", coordinatesPart = "";
-		
-		eventCodePart = "\"type\":\"";
-		if(string.IsNullOrEmpty(eventCode)) {
-			eventCodePart+="unknown";
-		} else {
-			eventCodePart+=eventCode;
-		}
-		eventCodePart+="\"";
-		
-		if(!string.IsNullOrEmpty(customData)) {
-			customDataPart = ",\"customData\":\""+customData+"\"";
-		}
-		
-		if(!string.IsNullOrEmpty(section)) {
-			sectionPart = ",\"section\":\""+section+"\"";
-		}
-		
-		if(!string.IsNullOrEmpty(coordinates)) {
-			coordinatesPart = ",\"coordinates\":\""+coordinates+"\"";
-		}
-		
-		return eventCodePart+customDataPart+sectionPart+coordinatesPart+"}";
-	}
-	
-	private string createJsonForRedMetrics(string eventCode, string customData, string section, string coordinates)
-	{
-		string jsonPrefix = "{\"gameVersion\":" + gameVersion + "," +
-			"\"player\":";
-		string jsonSuffix = innerCreateJsonForRedMetrics(eventCode, customData, section, coordinates);
+	private string getJsonString(TrackingEventDataWithIDs data) {
 
-		string pID = playerID;
-		if(!string.IsNullOrEmpty(pID))
-		{
-			//logMessage("RedMetricsManager::sendEvent player already identified - pID="+pID);            
-		} else {
-			logMessage("RedMetricsManager::sendEvent no registered player!", MessageLevel.WARNING);
-			pID = defaultPlayerID;
-		}
-		return jsonPrefix+pID+","+jsonSuffix;
-		//sendData(redMetricsEvent, ourPostData, value => wwwLogger(value, "sendEvent("+eventCode+")"));
+		logMessage("data="+data);
+
+		//serialization
+		JsonWriter writer = new JsonWriter();
+		writer.PrettyPrint = true;		
+		JsonMapper.ToJson(data,writer);		
+		
+		string json = writer.ToString();
+		logMessage("json="+json);
+		return json;
+	}	
+	
+	
+	private string getJsonString(TrackingEventDataWithoutIDs data) {
+
+		logMessage("data="+data);
+
+		//serialization
+		JsonWriter writer = new JsonWriter();
+		writer.PrettyPrint = true;		
+		JsonMapper.ToJson(data,writer);		
+		
+		string json = writer.ToString();
+		logMessage("json="+json);
+		return json;
+  }
+	
+	private string getJsonString(CreatePlayerData data) {
+		//serialization
+		JsonWriter writer = new JsonWriter();
+		writer.PrettyPrint = true;		
+		JsonMapper.ToJson(data,writer);		
+		
+		string json = writer.ToString();
+		logMessage("json="+json);
+		return json;
 	}
 	
-	private string createJsonForRedMetricsJS(string eventCode, string customData, string section, string coordinates)
+	public void sendEvent(TrackingEvent trackingEvent, Vector2 coordinates, CustomData customData = null, string section = null)
 	{
-		return "{"+innerCreateJsonForRedMetrics(eventCode, customData, section, coordinates);
+		float[] _coordinates = { coordinates.x, coordinates.y };
+		sendEvent(trackingEvent, customData, section, _coordinates);
+	}
+	
+	public void sendEvent(TrackingEvent trackingEvent, Vector3 coordinates, CustomData customData = null, string section = null)
+	{
+		float[] _coordinates = { coordinates.x, coordinates.y, coordinates.z };
+		sendEvent(trackingEvent, customData, section, _coordinates);
 	}
 
-	private string prepareEvent(TrackingEvent tEvent) {
-		return tEvent.ToString().ToLower();
-	}
-
-	// see github.com/CyberCri/RedMetrics.js
-	// with type -> eventCode
-
-
-	//TODO
-	//VECTOR FOR COORDINATES
-	//JSON FOR CUSTOMDATA
-	//JSON LIB FOR C#
-	//CLASS FOR EVENT INFORMATION
-	public void sendEvent(TrackingEvent trackingEvent, string customData = null, string section = null, string coordinates = null)
+	public void sendEvent(TrackingEvent trackingEvent, CustomData customData = null, string section = null, float[] coordinates = null)
 	{
+
 		//logMessage("RedMetricsManager::sendEvent");
 		if(Application.isWebPlayer) {
-			string json = createJsonForRedMetricsJS(prepareEvent(trackingEvent), customData, section, coordinates);
+			TrackingEventDataWithoutIDs data = new TrackingEventDataWithoutIDs(trackingEvent, customData, section, coordinates);			
+			string json = getJsonString(data);
 			//logMessage("RedMetricsManager::sendEvent isWebPlayer will rmPostEvent json="+json);
 			Application.ExternalCall("rmPostEvent", json);
 		} else {
@@ -360,10 +352,10 @@ public class RedMetricsManager : MonoBehaviour
 			//TODO wait on playerID using an IEnumerator
 			if(!string.IsNullOrEmpty(playerID))
 			{
+				TrackingEventDataWithIDs data = new TrackingEventDataWithIDs(playerID, gameVersion, trackingEvent, customData, section, coordinates);			
+				string json = getJsonString(data);
 				//logMessage("RedMetricsManager::sendEvent player already identified - pID="+playerID);
-				string ourPostData = createJsonForRedMetrics(prepareEvent(trackingEvent),customData,section,coordinates);
-				Debug.LogWarning(ourPostData);
-				sendData(redMetricsEvent, ourPostData, value => wwwLogger(value, "sendEvent("+prepareEvent(trackingEvent)+")"));
+				sendDataStandalone(redMetricsEvent, json, value => wwwLogger(value, "sendEvent("+trackingEvent+")"));
 			} else {
 				logMessage("RedMetricsManager::sendEvent no registered player!", MessageLevel.ERROR);
 			}

@@ -11,18 +11,27 @@ public class JumpingCube : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(Input.GetKeyUp(KeyCode.Space)) {
-			RedMetricsManager.get ().sendEvent(TrackingEvent.JUMP, 
-			                                   "1");//"{\"time\": "+Time.realtimeSinceStartup.ToString()+"}",
-			                                   //"testSection",
-			                                   //"[1,2]");
+
+			CustomData customData = new CustomData();
+			customData.Add("velocity", this.gameObject.GetComponent<Rigidbody>().velocity.ToString());
+
+			RedMetricsManager.get ().sendEvent(TrackingEvent.JUMP,
+			                                   this.gameObject.transform.position,
+			                                   customData,
+			                                   Application.loadedLevelName);
+
 			giveImpulsion();
 		}
 
 		if(this.gameObject.transform.localPosition.y < -2.0f) {
-			RedMetricsManager.get ().sendEvent(TrackingEvent.BOUNCE);/*, 
-			                                   "1",//"{\"time\": "+Time.realtimeSinceStartup.ToString()+"}",
-			                                   "testSection",
-			                                   "[1,2]");*/
+
+			CustomData customData = new CustomData();
+			customData.Add("velocity", this.gameObject.GetComponent<Rigidbody>().velocity.ToString());
+
+			RedMetricsManager.get ().sendEvent(TrackingEvent.BOUNCE, 
+			                                   this.gameObject.transform.position,
+			                                   customData,
+			                                   Application.loadedLevelName);
 			giveImpulsion();
 		}
 	}

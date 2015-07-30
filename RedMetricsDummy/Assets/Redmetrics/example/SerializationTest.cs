@@ -14,7 +14,7 @@ public class SerializationTest : MonoBehaviour {
 
 		float[] coordinates = { 1, 2, 3 };
 
-		TrackingEventData data = new TrackingEventData(
+		TrackingEventData data = new TrackingEventDataWithoutIDs(
 			TrackingEvent.START,
 			customData,
 			"map1.level1.section1",
