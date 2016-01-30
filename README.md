@@ -49,7 +49,7 @@ If you want to use your own game version ID, statically edit the ```defaultGameV
 
 1. Download or clone the RedMetrics-Unity repository.
 2. Import `Redmetrics.unitypackage` (Assets | Import Package | Custom Package).
-3. Create an empty game object (GameObject | Create Empty). Add the `Red Metrics Manager` script as a component.
+3. Create an empty game object (GameObject | Create Empty) called `RedMetricsManager`. Add the `Red Metrics Manager` script as a component.
 4. To create a trigger that sends an event, create a new script and put in the example code below. Attach this script to a game object that has a collider component that is a trigger.
 
 ```c#
