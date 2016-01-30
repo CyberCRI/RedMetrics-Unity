@@ -44,3 +44,19 @@ The example scene just contains a bouncing cube that you can push up by pressing
 To see the logs, check the page redmetrics.io. On the left panel, choose ```Redmetrics-Unity``` as game, then ```test``` as the version.
 
 If you want to use your own game version ID, statically edit the ```defaultGameVersion``` field in the ```RedmetricsManager.cs``` file, or dynamically use the ```setGameVersion``` method.
+
+## Use in your own game
+
+1. Download or clone the RedMetrics-Unity repository.
+2. Import `Redmetrics.unitypackage` (Assets | Import Package | Custom Package).
+3. Create an empty game object (GameObject | Create Empty). Add the `Red Metrics Manager` script as a component.
+4. To create a trigger that sends an event, create a new script and put in the example code below. Attach this script to a game object that has a collider component that is a trigger.
+
+```c#
+	void OnTriggerEnter(Collider other) {
+		RedMetricsManager.get ().sendEvent(TrackingEvent.START);
+	}
+```
+
+6. To create new types of events, add or modify the list in `TrackingEvent.cs`
+7. Profit!
